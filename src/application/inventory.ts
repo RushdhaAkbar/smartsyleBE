@@ -1,4 +1,3 @@
-// File: src/application/inventory.ts
 import NotFoundError from '../domain/errors/not-found-error';
 import Product from '../infrastructure/schemas/Product';
 import ValidationError from '../domain/errors/validation-error';
@@ -20,11 +19,32 @@ export const updateStock = async (
     if (!result.success) {
       throw new ValidationError("Invalid stock data");
     }
-    const product = await Product.findByIdAndUpdate(productId, { stock: result.data.stock }, { new: true });
+    const stockDelta = result.data.stock;
+
+    const product = await Product.findById(productId);
     if (!product) {
       throw new NotFoundError("Product not found");
     }
-    const productObj = { ...product.toObject(), price: product.price.toString() };
+
+    if (
+      stockDelta < 0 &&
+      typeof product.stock === "number" &&
+      product.stock < Math.abs(stockDelta)
+    ) {
+      throw new ValidationError("Not enough stock");
+    }
+
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { $inc: { stock: stockDelta } },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      throw new NotFoundError("Product not found after update");
+    }
+
+    const productObj = { ...updatedProduct.toObject(), price: updatedProduct.price.toString() };
     res.status(200).json(productObj);
     return;
   } catch (error) {

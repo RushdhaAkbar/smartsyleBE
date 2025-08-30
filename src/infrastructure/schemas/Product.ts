@@ -39,11 +39,16 @@ const ProductSchema = new mongoose.Schema({
     barcode: {
       type: String,
       unique: true,
-      required: true,
+      required: false,
     },
     qrCode: {
       type: String,
-      required: true,
+      required: false,
+    },
+    availability: {
+      type: Boolean,
+      required: false,
+      default: true,
     },
   });
   
