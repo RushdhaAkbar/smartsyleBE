@@ -1,4 +1,4 @@
-// src/application/category.ts (debugged)
+
 import { CategoryDTO, SubcategoryDTO } from "../domain/dto/category";
 import NotFoundError from "../domain/errors/not-found-error";
 import ValidationError from "../domain/errors/validation-error";
@@ -51,10 +51,9 @@ export const createCategory = async (
       if (!result.success) {
         throw new ValidationError("Invalid category data: " + result.error.message);
       }
-      const data = result.data; // TypeScript now knows data is defined
       const category = {
-        name: data.name,
-        subcategories: data.subcategories || [],
+        name: result.data.name,
+        subcategories: result.data.subcategories || [],
       };
       await Category.create(category);
       res.status(201).json({ message: 'Category created successfully', count: 1 });
@@ -110,11 +109,11 @@ export const updateCategory = async (
   try {
     const id = req.params.id;
     const updateData = CategoryDTO.safeParse(req.body);
-    console.log('Update data result:', updateData); // Debug update
+    console.log('Update data result:', updateData); 
     if (!updateData.success) {
       throw new ValidationError("Invalid category data: " + updateData.error.message);
     }
-    const data = updateData.data; // TypeScript now knows data is defined
+    const data = updateData.data; 
 
     const category = await Category.findByIdAndUpdate(id, {
       name: data.name,

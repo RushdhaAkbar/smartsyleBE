@@ -11,19 +11,21 @@ export const getProducts = async (
   next: NextFunction
 ) => {
   try {
-    const { categoryId } = req.query;
+    const { categoryId, code } = req.query; // Extract code from query params
     let data: any[] = [];
-    if (!categoryId) {
-      data = await Product.find();
-    } else {
+    if (code) {
+      data = await Product.find({
+        $or: [{ qrCode: code }, { barcode: code }],
+      }).populate('categoryId', 'name');
+    } else if (categoryId) {
       data = await Product.find({ categoryId }).populate('categoryId', 'name');
+    } else {
+      data = await Product.find().populate('categoryId', 'name');
     }
-    console.log('Fetched products:', data); // Debug log
     data = data.map(p => ({ ...p.toObject(), price: p.price.toString() }));
     res.status(200).json(data);
     return;
  } catch (error) {
-    console.error('Error fetching products:', error);
     next(error);
   }
 };
@@ -34,22 +36,18 @@ export const createProduct = async (
   next: NextFunction
 ) => {
   try {
-    console.log('Received product data:', req.body); // Debug log
     const result = ProductDTO.safeParse(req.body);
     if (!result.success) {
-      console.error('Validation error:', result.error);
-      throw new ValidationError("Invalid product data: " + result.error.message);
+      throw new ValidationError("Invalid product data");
     }
     const productData = {
       ...result.data,
-      subcategory: result.data.subcategory || '',
+      subcategory: result.data.subcategory || '', // Default to empty if not provided
     };
     const product = await Product.create(productData);
-    console.log('Created product:', product); // Debug log
     res.status(201).json(product);
     return;
   } catch (error) {
-    console.error('Error creating product:', error);
     next(error);
   }
 };
@@ -69,7 +67,6 @@ export const getProduct = async (
     res.status(200).json(productObj);
     return;
   } catch (error) {
-    console.error('Error fetching product:', error);
     next(error);
   }
 };
@@ -88,7 +85,6 @@ export const deleteProduct = async (
     res.status(204).send();
     return;
   } catch (error) {
-    console.error('Error deleting product:', error);
     next(error);
   }
 };
@@ -100,11 +96,10 @@ export const updateProduct = async (
 ) => {
   try {
     const id = req.params.id;
-    console.log('Received update data:', req.body); // Debug log
+    // Partial update: validate only provided fields
     const partialData = ProductDTO.partial().safeParse(req.body);
     if (!partialData.success) {
-      console.error('Validation error:', partialData.error);
-      throw new ValidationError("Invalid update data: " + partialData.error.message);
+      throw new ValidationError("Invalid update data");
     }
     if (partialData.data.price !== undefined) {
       (partialData.data as any).price = partialData.data.price;
@@ -115,9 +110,8 @@ export const updateProduct = async (
     }
     const productObj = { ...product.toObject(), price: product.price.toString() };
     res.status(200).json(productObj);
-    return;
+    return; 
   } catch (error) {
-    console.error('Error updating product:', error);
     next(error);
   }
 };
