@@ -1,9 +1,11 @@
+
 import { z } from "zod";
 
-export const CategoryDTO = z.object({
-  name: z.string(),
+export const SubcategoryDTO = z.object({
+  name: z.string().min(1, "Subcategory name is required"),
 });
 
-// export type CategoryDTO = {
-//   name: string;
-// };
+export const CategoryDTO = z.object({
+  name: z.string().min(1, "Category name is required"),
+  subcategories: z.array(SubcategoryDTO).optional(), 
+});

@@ -3,11 +3,7 @@ import NotFoundError from '../domain/errors/not-found-error';
 import ValidationError from '../domain/errors/validation-error';
 import Product from '../infrastructure/schemas/Product';
 import { Request, Response, NextFunction } from "express";
-import { v4 as uuidv4 } from 'uuid';
-import QRCode from 'qrcode';
 import mongoose from 'mongoose';
-
-
 
 export const getProducts = async (
   req: Request,
@@ -22,11 +18,12 @@ export const getProducts = async (
     } else {
       data = await Product.find({ categoryId }).populate('categoryId', 'name');
     }
-    // Convert Decimal128 to string for JSON
+    console.log('Fetched products:', data); // Debug log
     data = data.map(p => ({ ...p.toObject(), price: p.price.toString() }));
     res.status(200).json(data);
     return;
  } catch (error) {
+    console.error('Error fetching products:', error);
     next(error);
   }
 };
@@ -37,23 +34,22 @@ export const createProduct = async (
   next: NextFunction
 ) => {
   try {
+    console.log('Received product data:', req.body); // Debug log
     const result = ProductDTO.safeParse(req.body);
     if (!result.success) {
-      throw new ValidationError("Invalid product data");
+      console.error('Validation error:', result.error);
+      throw new ValidationError("Invalid product data: " + result.error.message);
     }
-    const barcode = uuidv4();
-    const qrCode = await QRCode.toDataURL(barcode);
     const productData = {
       ...result.data,
-      barcode,
-      qrCode,
-      price: mongoose.Types.Decimal128.fromString(result.data.price.toString()),
+      subcategory: result.data.subcategory || '',
     };
     const product = await Product.create(productData);
-    const productObj = { ...product.toObject(), price: product.price.toString() };
-    res.status(201).json(productObj);
+    console.log('Created product:', product); // Debug log
+    res.status(201).json(product);
     return;
   } catch (error) {
+    console.error('Error creating product:', error);
     next(error);
   }
 };
@@ -73,6 +69,7 @@ export const getProduct = async (
     res.status(200).json(productObj);
     return;
   } catch (error) {
+    console.error('Error fetching product:', error);
     next(error);
   }
 };
@@ -91,6 +88,7 @@ export const deleteProduct = async (
     res.status(204).send();
     return;
   } catch (error) {
+    console.error('Error deleting product:', error);
     next(error);
   }
 };
@@ -102,14 +100,14 @@ export const updateProduct = async (
 ) => {
   try {
     const id = req.params.id;
-    // Partial update: validate only provided fields
+    console.log('Received update data:', req.body); // Debug log
     const partialData = ProductDTO.partial().safeParse(req.body);
     if (!partialData.success) {
-      throw new ValidationError("Invalid update data");
+      console.error('Validation error:', partialData.error);
+      throw new ValidationError("Invalid update data: " + partialData.error.message);
     }
     if (partialData.data.price !== undefined) {
-      // Assign Decimal128 to price, ensuring type compatibility
-      (partialData.data as any).price = mongoose.Types.Decimal128.fromString(String(partialData.data.price));
+      (partialData.data as any).price = partialData.data.price;
     }
     const product = await Product.findByIdAndUpdate(id, partialData.data, { new: true });
     if (!product) {
@@ -117,8 +115,9 @@ export const updateProduct = async (
     }
     const productObj = { ...product.toObject(), price: product.price.toString() };
     res.status(200).json(productObj);
-    return; 
+    return;
   } catch (error) {
+    console.error('Error updating product:', error);
     next(error);
   }
 };
