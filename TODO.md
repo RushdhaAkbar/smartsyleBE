@@ -1,6 +1,7 @@
-# TODO: Fix Category Handling for Bulk and Single Inputs
+# TODO: Fix TensorFlow.js Integration
 
-- [x] Refactor createCategory function in src/application/category.ts to fix 'result.data' possibly undefined error
-- [x] Ensure proper type narrowing for safeParse results
-- [x] Verify handling of both single category and array of categories
-- [ ] Test the changes to confirm no TypeScript errors
+- [x] Update package.json: Remove '@tensorflow/tfjs-node', add '@tensorflow/tfjs' (web version)
+- [x] Update src/application/product.ts: Replace tfjs-node import with tfjs web version
+- [x] Run npm install to update dependencies
+- [x] Verify the server starts successfully
+- [x] Confirm TensorFlow.js works with CPU backend in Node.js environment

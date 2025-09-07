@@ -11,13 +11,17 @@
   "description": "",
   "dependencies": {
     "@clerk/express": "^1.5.2",
+    "@tensorflow/tfjs": "^4.22.0",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^5.1.0",
     "mongodb": "^6.19.0",
     "mongoose": "^8.18.0",
+    "multer": "^2.0.2",
+    "node-fetch": "^3.3.2",
     "nodemon": "^3.1.10",
     "qrcode": "^1.5.4",
+    "sharp": "^0.34.3",
     "uuid": "^11.1.0",
     "zod": "^3.25.76"
   },
@@ -25,7 +29,9 @@
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.2",
     "@types/mongoose": "^5.11.96",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.15.23",
+    "@types/node-fetch": "^2.6.13",
     "@types/qrcode": "^1.5.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
